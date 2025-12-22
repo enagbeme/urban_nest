@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:fragment="head(title)">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${title} + ' | UrbanNest'">UrbanNest</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link
+        rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+        crossorigin=""
+    />
+    <script
+        src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+        crossorigin=""
+    ></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-white">
+    <nav th:fragment="navbar" class="bg-white/80 backdrop-blur-md sticky top-0 z-50 border-b border-gray-100">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <a th:href="@{/}" class="flex items-center space-x-2">
+                        <div class="bg-indigo-600 p-2 rounded-lg text-white">
+                            <i data-lucide="home" size="24"></i>
+                        </div>
+                        <span class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600">
+                            UrbanNest
+                        </span>
+                    </a>
+                </div>
+
+                <!-- Desktop Menu -->
+                <div class="hidden md:flex items-center space-x-4">
+                    <a th:href="@{/}" class="flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-200 text-slate-600 hover:bg-gray-50 hover:text-indigo-600">
+                        <i data-lucide="home" size="18"></i>
+                        <span>Home</span>
+                    </a>
+                    
+                    <a sec:authorize="hasAuthority('CLIENT')" th:href="@{/client-dashboard}" class="flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-200 text-slate-600 hover:bg-gray-50 hover:text-indigo-600">
+                        <i data-lucide="search" size="18"></i>
+                        <span>Find Homes</span>
+                    </a>
+                    
+                    <a sec:authorize="hasAuthority('HOMEOWNER')" th:href="@{/homeowner-dashboard}" class="flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-200 text-slate-600 hover:bg-gray-50 hover:text-indigo-600">
+                        <i data-lucide="layout-dashboard" size="18"></i>
+                        <span>Manage Property</span>
+                    </a>
+
+                    <a sec:authorize="isAuthenticated()" th:href="@{/profile}" class="flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-200 text-slate-600 hover:bg-gray-50 hover:text-indigo-600">
+                        <i data-lucide="id-card" size="18"></i>
+                        <span>Profile</span>
+                    </a>
+
+                    <div class="h-6 w-px bg-gray-200 mx-2"></div>
+                    
+                    <div sec:authorize="isAuthenticated()" class="flex items-center space-x-4">
+                        <div class="flex items-center space-x-2 text-slate-600">
+                            <i data-lucide="user" size="18"></i>
+                            <span class="text-sm font-medium" sec:authentication="principal.fullName">User Name</span>
+                        </div>
+                        <form th:action="@{/logout}" method="post">
+                            <button type="submit" class="flex items-center space-x-2 bg-slate-100 text-slate-600 px-4 py-2 rounded-lg hover:bg-slate-200 transition-colors">
+                                <i data-lucide="log-out" size="18"></i>
+                                <span>Sign Out</span>
+                            </button>
+                        </form>
+                    </div>
+                    
+                    <a sec:authorize="!isAuthenticated()" th:href="@{/login}" class="flex items-center space-x-2 bg-slate-900 text-white px-5 py-2.5 rounded-full hover:bg-slate-800 transition-colors shadow-lg shadow-slate-900/20">
+                        <i data-lucide="log-in" size="18"></i>
+                        <span>Sign In</span>
+                    </a>
+                </div>
+
+                <!-- Mobile menu button -->
+                <div class="md:hidden flex items-center">
+                    <button id="mobile-menu-button" class="text-gray-600 hover:text-gray-900 focus:outline-none">
+                        <i data-lucide="menu" size="24"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden md:hidden bg-white border-b border-gray-100 pb-4 px-4">
+            <div class="flex flex-col space-y-2">
+                <a th:href="@{/}" class="flex items-center space-x-2 p-3 rounded-lg text-slate-600 hover:bg-gray-50">
+                    <i data-lucide="home" size="18"></i>
+                    <span>Home</span>
+                </a>
+                <a sec:authorize="hasAuthority('CLIENT')" th:href="@{/client-dashboard}" class="flex items-center space-x-2 p-3 rounded-lg text-slate-600 hover:bg-gray-50">
+                    <i data-lucide="search" size="18"></i>
+                    <span>Find Homes</span>
+                </a>
+                <a sec:authorize="hasAuthority('HOMEOWNER')" th:href="@{/homeowner-dashboard}" class="flex items-center space-x-2 p-3 rounded-lg text-slate-600 hover:bg-gray-50">
+                    <i data-lucide="layout-dashboard" size="18"></i>
+                    <span>Manage Property</span>
+                </a>
+                <a sec:authorize="isAuthenticated()" th:href="@{/profile}" class="flex items-center space-x-2 p-3 rounded-lg text-slate-600 hover:bg-gray-50">
+                    <i data-lucide="id-card" size="18"></i>
+                    <span>Profile</span>
+                </a>
+                <div sec:authorize="isAuthenticated()" class="pt-4 border-t border-gray-100">
+                    <form th:action="@{/logout}" method="post">
+                        <button type="submit" class="w-full flex items-center justify-center space-x-2 bg-slate-100 text-slate-600 py-3 rounded-lg">
+                            <i data-lucide="log-out" size="18"></i>
+                            <span>Sign Out</span>
+                        </button>
+                    </form>
+                </div>
+                <a sec:authorize="!isAuthenticated()" th:href="@{/login}" class="flex items-center justify-center space-x-2 bg-slate-900 text-white py-3 rounded-lg">
+                    <i data-lucide="log-in" size="18"></i>
+                    <span>Sign In</span>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+
+        // Mobile menu toggle
+        const btn = document.getElementById('mobile-menu-button');
+        const menu = document.getElementById('mobile-menu');
+        if (btn && menu) {
+            btn.addEventListener('click', () => {
+                menu.classList.toggle('hidden');
+                const icon = btn.querySelector('i');
+                if (menu.classList.contains('hidden')) {
+                    icon.setAttribute('data-lucide', 'menu');
+                } else {
+                    icon.setAttribute('data-lucide', 'x');
+                }
+                lucide.createIcons();
+            });
+        }
+    </script>
+</body>
+</html>

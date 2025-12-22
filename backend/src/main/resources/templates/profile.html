@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{layout :: head('Profile')}"></head>
+<body class="bg-white">
+    <div th:replace="~{layout :: navbar}"></div>
+
+    <main class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        <div class="flex items-start justify-between mb-8">
+            <div>
+                <h1 class="text-3xl font-bold text-slate-900">Profile</h1>
+                <p class="text-slate-600 mt-2">Manage your account details.</p>
+            </div>
+            <div class="bg-indigo-50 text-indigo-700 px-4 py-2 rounded-xl text-sm font-semibold" th:text="${user.role}">ROLE</div>
+        </div>
+
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <p class="text-sm text-slate-500 font-medium">Full Name</p>
+                    <p class="text-lg font-bold text-slate-900" th:text="${user.fullName}">Full Name</p>
+                </div>
+                <div>
+                    <p class="text-sm text-slate-500 font-medium">Email</p>
+                    <p class="text-lg font-bold text-slate-900" th:text="${user.email}">Email</p>
+                </div>
+            </div>
+
+            <div class="mt-6 pt-6 border-t border-gray-100">
+                <p class="text-sm text-slate-500 font-medium">Account Status</p>
+                <div class="mt-2">
+                    <span th:if="${user.enabled}" class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-green-100 text-green-700">Active</span>
+                    <span th:unless="${user.enabled}" class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-amber-100 text-amber-700">Not Verified</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div sec:authorize="hasAuthority('CLIENT')" class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+                <h2 class="text-xl font-bold text-slate-900 mb-2">Client Actions</h2>
+                <p class="text-slate-600 mb-4">Browse and view properties.</p>
+                <a th:href="@{/client-dashboard}" class="inline-flex items-center space-x-2 px-5 py-3 rounded-xl bg-indigo-600 text-white font-bold hover:bg-indigo-700 transition-colors">
+                    <span>Browse Properties</span>
+                </a>
+            </div>
+
+            <div sec:authorize="hasAuthority('HOMEOWNER')" class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+                <h2 class="text-xl font-bold text-slate-900 mb-2">Homeowner Actions</h2>
+                <p class="text-slate-600 mb-4">Manage your listings.</p>
+                <a th:href="@{/homeowner-dashboard}" class="inline-flex items-center space-x-2 px-5 py-3 rounded-xl bg-indigo-600 text-white font-bold hover:bg-indigo-700 transition-colors">
+                    <span>Manage Properties</span>
+                </a>
+            </div>
+        </div>
+
+        <div class="mt-8 bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+            <h2 class="text-xl font-bold text-slate-900 mb-2">Government ID Verification</h2>
+            <p class="text-slate-600">We will add government-issued ID verification here in a later update.</p>
+        </div>
+    </main>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>

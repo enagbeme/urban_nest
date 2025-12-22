@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{layout :: head('Find Your Next Home')}"></head>
+<body class="bg-white">
+    <div th:replace="~{layout :: navbar}"></div>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="flex flex-col md:flex-row justify-between items-end mb-10">
+            <div>
+                <h1 class="text-3xl font-bold text-slate-900">Find Your Next Home</h1>
+                <p class="text-slate-600 mt-2">Browse the best properties available across Ghana.</p>
+            </div>
+            <div class="flex space-x-2 mt-4 md:mt-0">
+                <select id="locationFilter" class="px-4 py-2 border border-gray-200 rounded-lg bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <option value="all">All Locations</option>
+                    <option value="accra">Accra</option>
+                    <option value="kumasi">Kumasi</option>
+                    <option value="takoradi">Takoradi</option>
+                </select>
+                <select id="categoryFilter" class="px-4 py-2 border border-gray-200 rounded-lg bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <option value="all">All Categories</option>
+                    <option value="luxury">Luxury</option>
+                    <option value="airbnb">Airbnb</option>
+                    <option value="hostel">Hostel</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="mb-10">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-xl font-bold text-slate-900">Map</h2>
+                <p class="text-sm text-slate-500">Only listings with coordinates appear on the map.</p>
+            </div>
+            <div id="browseMap" class="w-full rounded-2xl border border-gray-100 overflow-hidden shadow-sm" style="height: 360px;"></div>
+        </div>
+
+        <div class="mb-10">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-xl font-bold text-slate-900">My Bookings</h2>
+                <p class="text-sm text-slate-500">Your confirmed bookings (free for now).</p>
+            </div>
+            <div id="myBookings" class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 text-slate-600">
+                Loading bookings...
+            </div>
+        </div>
+        
+        <div th:if="${properties.empty}" class="bg-white rounded-2xl shadow-sm border border-gray-100 p-12 text-center text-slate-500">
+            <p class="text-lg">No properties listed yet. Check back later!</p>
+        </div>
+        
+        <div th:unless="${properties.empty}" id="propertyGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div th:each="property : ${properties}" 
+                 th:data-location="${#strings.toLowerCase(property.location)}"
+                 th:data-category="${#strings.toLowerCase(property.category)}"
+                 th:class="'property-card group bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100 flex flex-col ' + (${property.isAvailable} ? '' : 'opacity-80')">
+                <div class="relative h-64 overflow-hidden">
+                    <img 
+                        th:src="${property.imageUrl != null && !property.imageUrl.empty} ? ${property.imageUrl} : @{/api/properties/{id}/image(id=${property.id})}" 
+                        th:alt="${property.title}" 
+                        class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500" 
+                        onerror="this.src='https://images.unsplash.com/photo-1560518883-ce09059eeffa?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1073&q=80'"
+                    />
+                    <div class="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-bold text-indigo-600 uppercase tracking-wide" th:text="${property.category}">
+                        CATEGORY
+                    </div>
+                    <div th:class="'absolute top-4 left-4 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-bold flex items-center space-x-1 ' + (${property.isAvailable} ? 'bg-green-500/90 text-white' : 'bg-amber-500/90 text-white')">
+                        <i th:data-lucide="${property.isAvailable} ? 'check-circle' : 'alert-circle'" size="12"></i>
+                        <span th:text="${property.isAvailable} ? 'Available' : 'Rented'">Available</span>
+                    </div>
+                </div>
+                
+                <div class="p-6 flex-1 flex flex-col">
+                    <div class="flex justify-between items-start mb-2">
+                        <h3 class="text-xl font-bold text-slate-900 line-clamp-1" th:text="${property.title}">Title</h3>
+                        <span class="text-lg font-bold text-indigo-600 whitespace-nowrap ml-2" th:text="'₵' + ${#numbers.formatDecimal(property.price, 0, 'COMMA', 0, 'POINT')}">₵0</span>
+                    </div>
+                    
+                    <div class="flex items-center text-slate-500 text-sm mb-4">
+                        <i data-lucide="map-pin" size="16" class="mr-1"></i>
+                        <span th:text="${property.location}">Location</span>
+                    </div>
+                    
+                    <p class="text-slate-600 text-sm mb-6 line-clamp-2 flex-1" th:text="${property.description}">Description</p>
+                    
+                    <a 
+                        th:href="@{/property/{id}(id=${property.id})}"
+                        th:class="'w-full py-3 font-semibold rounded-xl transition-colors flex items-center justify-center space-x-2 ' + (${property.isAvailable} ? 'bg-gray-50 hover:bg-indigo-600 hover:text-white text-slate-700' : 'bg-gray-100 text-gray-400 cursor-not-allowed pointer-events-none')"
+                    >
+                        <span th:text="${property.isAvailable} ? 'View Details' : 'Rented'">View Details</span>
+                        <i data-lucide="arrow-right" size="18"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script th:inline="javascript">
+        lucide.createIcons();
+
+        const properties = /*[[${properties}]]*/ [];
+
+        const defaultCenter = [5.603717, -0.186964];
+        const browseMap = L.map('browseMap').setView(defaultCenter, 11);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(browseMap);
+
+        const bounds = [];
+        (properties || []).forEach(p => {
+            if (p && p.latitude != null && p.longitude != null) {
+                const lat = Number(p.latitude);
+                const lng = Number(p.longitude);
+                if (!Number.isNaN(lat) && !Number.isNaN(lng)) {
+                    bounds.push([lat, lng]);
+                    const popupHtml = `
+                        <div style="min-width: 200px;">
+                            <div style="font-weight: 700; margin-bottom: 4px;">${p.title ?? 'Property'}</div>
+                            <div style="font-size: 12px; opacity: 0.8; margin-bottom: 8px;">${p.location ?? ''}</div>
+                            <a href="/property/${p.id}" style="color: #4f46e5; font-weight: 600; text-decoration: underline;">View Details</a>
+                        </div>
+                    `;
+                    L.marker([lat, lng]).addTo(browseMap).bindPopup(popupHtml);
+                }
+            }
+        });
+
+        if (bounds.length > 0) {
+            browseMap.fitBounds(bounds, { padding: [30, 30] });
+        }
+
+        async function loadMyBookings() {
+            const container = document.getElementById('myBookings');
+            if (!container) return;
+            try {
+                const response = await fetch('/api/bookings/my');
+                if (!response.ok) {
+                    const text = await response.text();
+                    container.innerText = text || 'Failed to load bookings';
+                    return;
+                }
+                const bookings = await response.json();
+                if (!Array.isArray(bookings) || bookings.length === 0) {
+                    container.innerText = 'No bookings yet.';
+                    return;
+                }
+
+                const html = bookings.map(b => {
+                    const checkIn = b.checkIn || '';
+                    const checkOut = b.checkOut || '';
+                    const status = b.status || '';
+                    const total = b.totalAmount != null ? `₵${b.totalAmount}` : '';
+                    return `
+                        <div class="flex items-center justify-between py-3 border-b border-gray-100 last:border-b-0">
+                            <div>
+                                <div class="font-bold text-slate-900">${checkIn} → ${checkOut}</div>
+                                <div class="text-sm text-slate-500">Status: ${status}${total ? ` • Total: ${total}` : ''}</div>
+                            </div>
+                            <a href="/property/${b.propertyId}" class="text-indigo-600 font-semibold hover:text-indigo-700">View Property</a>
+                        </div>
+                    `;
+                }).join('');
+
+                container.innerHTML = html;
+            } catch (e) {
+                container.innerText = 'Failed to load bookings';
+            }
+        }
+
+        loadMyBookings();
+
+        // Client-side filtering
+        const locationFilter = document.getElementById('locationFilter');
+        const categoryFilter = document.getElementById('categoryFilter');
+        const propertyGrid = document.getElementById('propertyGrid');
+        
+        function filterProperties() {
+            const location = locationFilter.value.toLowerCase();
+            const category = categoryFilter.value.toLowerCase();
+            const cards = document.querySelectorAll('.property-card');
+            
+            let hasVisible = false;
+
+            cards.forEach(card => {
+                const cardLocation = card.getAttribute('data-location') || '';
+                const cardCategory = card.getAttribute('data-category') || '';
+                
+                const locationMatch = location === 'all' || cardLocation.includes(location);
+                const categoryMatch = category === 'all' || cardCategory === category;
+                
+                if (locationMatch && categoryMatch) {
+                    card.style.display = 'flex';
+                    hasVisible = true;
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+            
+            // Could handle "no results" message here if needed
+        }
+
+        locationFilter.addEventListener('change', filterProperties);
+        categoryFilter.addEventListener('change', filterProperties);
+    </script>
+</body>
+</html>

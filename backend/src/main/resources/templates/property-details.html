@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{layout :: head(${property.title})}"></head>
+<body class="bg-gray-50">
+    <div th:replace="~{layout :: navbar}"></div>
+
+    <main class="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-12 py-8">
+        <div class="mb-8">
+            <a href="javascript:history.back()" class="inline-flex items-center text-slate-500 hover:text-indigo-600 transition-colors">
+                <i data-lucide="arrow-left" class="mr-2 h-4 w-4"></i>
+                Back to Listings
+            </a>
+        </div>
+
+        <div class="bg-white rounded-3xl shadow-xl overflow-hidden">
+            <div class="flex flex-col lg:flex-row">
+                <!-- Image Section -->
+                <div class="lg:w-1/3 xl:w-5/12 h-96 lg:h-auto relative bg-slate-900">
+                    <img 
+                        th:src="${property.imageUrl != null && !property.imageUrl.empty} ? ${property.imageUrl} : @{/api/properties/{id}/image(id=${property.id})}" 
+                        th:alt="${property.title}" 
+                        class="w-full h-full object-cover opacity-90" 
+                        onerror="this.src='https://images.unsplash.com/photo-1560518883-ce09059eeffa?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1073&q=80'"
+                    />
+                    <div class="absolute top-6 left-6 flex space-x-2">
+                        <span th:class="'px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide ' + (${property.isAvailable} ? 'bg-green-500 text-white' : 'bg-amber-500 text-white')">
+                            <span th:text="${property.isAvailable} ? 'Available' : 'Rented'">Available</span>
+                        </span>
+                        <span class="bg-white/90 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold text-indigo-600 uppercase tracking-wide" th:text="${property.category}">
+                            Category
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Details + Booking Section -->
+                <div class="lg:w-2/3 xl:w-7/12 p-7 sm:p-8 lg:p-10">
+                    <div class="grid grid-cols-1 lg:grid-cols-5 gap-8">
+                        <!-- Main Details -->
+                        <div class="lg:col-span-3">
+                            <h1 class="text-2xl lg:text-3xl font-bold text-slate-900 mb-2" th:text="${property.title}">Property Title</h1>
+                            <div class="flex items-center text-slate-500 mb-6">
+                                <i data-lucide="map-pin" class="h-5 w-5 mr-2"></i>
+                                <span th:text="${property.location}" class="text-base">Location</span>
+                            </div>
+
+                            <div class="prose prose-slate max-w-none mb-8">
+                                <h3 class="text-base font-bold text-slate-900 mb-2">Description</h3>
+                                <p th:text="${property.description}" class="text-sm text-slate-600 leading-relaxed">
+                                    Property description goes here...
+                                </p>
+                            </div>
+
+                            <div class="mb-8">
+                                <h3 class="text-base font-bold text-slate-900 mb-3">Location Map</h3>
+                                <div id="propertyMap" class="w-full rounded-2xl border border-gray-100 overflow-hidden" style="height: 260px;"></div>
+                                <p id="propertyMapHint" class="text-sm text-slate-500 mt-3 hidden">No coordinates provided for this listing yet.</p>
+                            </div>
+
+                            <div class="border-t border-gray-100 pt-8 mt-8">
+                                <h3 class="text-base font-bold text-slate-900 mb-4">Property Owner</h3>
+                                <div class="flex items-center space-x-4">
+                                    <div class="h-12 w-12 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-xl">
+                                        <span th:text="${owner != null ? #strings.substring(owner.fullName, 0, 1) : 'O'}">O</span>
+                                    </div>
+                                    <div>
+                                        <p class="font-bold text-slate-900" th:text="${owner != null ? owner.fullName : 'Unknown Owner'}">Owner Name</p>
+                                        <p class="text-slate-500 text-sm" th:text="${owner != null ? owner.email : ''}">owner@example.com</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Booking Card -->
+                        <aside class="lg:col-span-2">
+                            <div class="lg:sticky lg:top-24 bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+                                <div class="flex items-start justify-between gap-4 mb-4">
+                                    <div>
+                                        <p class="text-slate-500 text-xs uppercase tracking-wide font-bold">Price</p>
+                                        <p class="text-2xl font-bold text-indigo-600" th:text="'₵' + ${#numbers.formatDecimal(property.price, 0, 'COMMA', 2, 'POINT')}">₵0.00</p>
+                                    </div>
+                                    <span th:class="'px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide ' + (${property.isAvailable} ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700')">
+                                        <span th:text="${property.isAvailable} ? 'Available' : 'Rented'">Available</span>
+                                    </span>
+                                </div>
+
+                                <div sec:authorize="hasAuthority('CLIENT')" class="space-y-4">
+                                    <div class="grid grid-cols-1 gap-3">
+                                        <div>
+                                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">Check-in</label>
+                                            <input id="checkIn" type="date" class="w-full px-3 py-2 border border-gray-200 rounded-lg bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">Check-out</label>
+                                            <input id="checkOut" type="date" class="w-full px-3 py-2 border border-gray-200 rounded-lg bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                                        </div>
+                                    </div>
+
+                                    <div class="rounded-xl bg-slate-50 border border-slate-100 p-4">
+                                        <div class="flex items-center justify-between">
+                                            <p class="text-xs font-bold text-slate-500 uppercase tracking-wide">Total for stay</p>
+                                            <p id="totalForStay" class="text-sm font-bold text-slate-900">—</p>
+                                        </div>
+                                        <p class="text-xs text-slate-500 mt-2">Estimated total based on nightly price and number of nights.</p>
+                                    </div>
+
+                                    <button 
+                                        th:if="${property.isAvailable}"
+                                        id="bookNowBtn"
+                                        class="w-full bg-indigo-600 text-white px-6 py-3.5 rounded-xl font-bold hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200 flex items-center justify-center space-x-2"
+                                        type="button"
+                                    >
+                                        <span>Book Now</span>
+                                        <i data-lucide="calendar-check" class="h-5 w-5"></i>
+                                    </button>
+                                    <button 
+                                        th:unless="${property.isAvailable}"
+                                        disabled
+                                        class="w-full bg-gray-100 text-gray-400 px-6 py-3.5 rounded-xl font-bold cursor-not-allowed"
+                                        type="button"
+                                    >
+                                        Not Available
+                                    </button>
+
+                                    <p class="text-xs text-slate-500 leading-relaxed">Instant booking is enabled. Payments are free for now.</p>
+                                </div>
+
+                                <div sec:authorize="!hasAuthority('CLIENT')" class="space-y-4">
+                                    <p class="text-sm text-slate-600">Login as a client to book instantly.</p>
+                                    <a href="/login" class="w-full bg-slate-900 text-white px-6 py-3.5 rounded-xl font-bold hover:bg-slate-800 transition-all flex items-center justify-center">Sign In</a>
+                                </div>
+                            </div>
+                        </aside>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script th:inline="javascript">
+        lucide.createIcons();
+
+        const property = /*[[${property}]]*/ null;
+        const defaultCenter = [5.603717, -0.186964];
+
+        const map = L.map('propertyMap', {
+            scrollWheelZoom: false
+        }).setView(defaultCenter, 12);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+
+        setTimeout(() => {
+            map.invalidateSize();
+        }, 0);
+
+        const hint = document.getElementById('propertyMapHint');
+        if (property && property.latitude != null && property.longitude != null) {
+            const lat = Number(property.latitude);
+            const lng = Number(property.longitude);
+            if (!Number.isNaN(lat) && !Number.isNaN(lng)) {
+                map.setView([lat, lng], 15);
+                L.marker([lat, lng]).addTo(map);
+            } else if (hint) {
+                hint.classList.remove('hidden');
+            }
+        } else if (hint) {
+            hint.classList.remove('hidden');
+        }
+
+        const bookNowBtn = document.getElementById('bookNowBtn');
+        const checkInInput = document.getElementById('checkIn');
+        const checkOutInput = document.getElementById('checkOut');
+        const totalForStayEl = document.getElementById('totalForStay');
+
+        if (checkInInput && checkOutInput) {
+            const today = new Date();
+            const yyyy = today.getFullYear();
+            const mm = String(today.getMonth() + 1).padStart(2, '0');
+            const dd = String(today.getDate()).padStart(2, '0');
+            const minDate = `${yyyy}-${mm}-${dd}`;
+            checkInInput.min = minDate;
+            checkOutInput.min = minDate;
+        }
+
+        function updateTotalForStay() {
+            if (!totalForStayEl) return;
+            if (!property || property.price == null) {
+                totalForStayEl.innerText = '—';
+                return;
+            }
+            if (!checkInInput || !checkOutInput) {
+                totalForStayEl.innerText = '—';
+                return;
+            }
+
+            const checkIn = checkInInput.value;
+            const checkOut = checkOutInput.value;
+            if (!checkIn || !checkOut) {
+                totalForStayEl.innerText = '—';
+                return;
+            }
+
+            const inDate = new Date(checkIn);
+            const outDate = new Date(checkOut);
+            if (Number.isNaN(inDate.getTime()) || Number.isNaN(outDate.getTime())) {
+                totalForStayEl.innerText = '—';
+                return;
+            }
+
+            const msPerDay = 24 * 60 * 60 * 1000;
+            const nights = Math.round((outDate.getTime() - inDate.getTime()) / msPerDay);
+            if (nights <= 0) {
+                totalForStayEl.innerText = '—';
+                return;
+            }
+
+            const nightly = Number(property.price);
+            if (Number.isNaN(nightly)) {
+                totalForStayEl.innerText = '—';
+                return;
+            }
+
+            const total = nightly * nights;
+            const formatted = new Intl.NumberFormat(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(total);
+            totalForStayEl.innerText = `₵${formatted} (${nights} night${nights === 1 ? '' : 's'})`;
+        }
+
+        if (checkInInput) checkInInput.addEventListener('change', updateTotalForStay);
+        if (checkOutInput) checkOutInput.addEventListener('change', updateTotalForStay);
+        updateTotalForStay();
+
+        if (bookNowBtn) {
+            bookNowBtn.addEventListener('click', async () => {
+                const checkIn = checkInInput ? checkInInput.value : '';
+                const checkOut = checkOutInput ? checkOutInput.value : '';
+
+                if (!checkIn || !checkOut) {
+                    alert('Please select check-in and check-out dates.');
+                    return;
+                }
+
+                bookNowBtn.disabled = true;
+                const originalText = bookNowBtn.innerText;
+                bookNowBtn.innerText = 'Booking...';
+
+                try {
+                    const response = await fetch('/api/bookings', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            propertyId: property.id,
+                            checkIn,
+                            checkOut
+                        })
+                    });
+
+                    const text = await response.text();
+                    if (response.ok) {
+                        alert('Booking confirmed!');
+                    } else {
+                        alert(text || 'Booking failed');
+                    }
+                } catch (e) {
+                    alert('Booking failed');
+                } finally {
+                    bookNowBtn.disabled = false;
+                    bookNowBtn.innerText = originalText;
+                }
+            });
+        }
+    </script>
+</body>
+</html>

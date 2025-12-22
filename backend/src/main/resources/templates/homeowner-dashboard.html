@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{layout :: head('Homeowner Dashboard')}"></head>
+<body class="bg-white">
+    <div th:replace="~{layout :: navbar}"></div>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="flex justify-between items-center mb-10">
+            <div>
+                <h1 class="text-3xl font-bold text-slate-900">Dashboard</h1>
+                <p class="text-slate-600 mt-2">Manage your properties and view performance.</p>
+            </div>
+            <button id="openAddModal" 
+                class="px-6 py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-200 flex items-center space-x-2">
+                <i data-lucide="plus" size="20"></i>
+                <span>Add New Property</span>
+            </button>
+        </div>
+
+        <!-- Stats Section -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center space-x-4">
+                <div class="p-4 rounded-xl bg-blue-500 text-white">
+                    <i data-lucide="home" size="24"></i>
+                </div>
+                <div>
+                    <p class="text-sm text-slate-500 font-medium">Total Properties</p>
+                    <h3 class="text-2xl font-bold text-slate-900" th:text="${properties.size()}">0</h3>
+                </div>
+            </div>
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center space-x-4">
+                <div class="p-4 rounded-xl bg-green-500 text-white">
+                    <i data-lucide="dollar-sign" size="24"></i>
+                </div>
+                <div>
+                    <p class="text-sm text-slate-500 font-medium">Total Revenue</p>
+                    <h3 class="text-2xl font-bold text-slate-900">₵0</h3>
+                </div>
+            </div>
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center space-x-4">
+                <div class="p-4 rounded-xl bg-purple-500 text-white">
+                    <i data-lucide="layout-list" size="24"></i>
+                </div>
+                <div>
+                    <p class="text-sm text-slate-500 font-medium">Active Listings</p>
+                    <h3 class="text-2xl font-bold text-slate-900" th:text="${activeListings}">0</h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="mb-12">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-xl font-bold text-slate-900">Bookings</h2>
+                <p class="text-sm text-slate-500">Instant bookings (free for now).</p>
+            </div>
+            <div id="ownerBookings" class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 text-slate-600">
+                Loading bookings...
+            </div>
+        </div>
+
+        <div class="mb-8">
+            <h2 class="text-xl font-bold text-slate-900 mb-6">My Properties</h2>
+            
+            <!-- No properties -->
+            <div th:if="${properties.empty}" class="bg-white rounded-2xl shadow-sm border border-gray-100 p-12 text-center text-slate-500">
+                <div class="bg-gray-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i data-lucide="home" size="32" class="text-gray-400"></i>
+                </div>
+                <p class="text-lg">You haven't listed any properties yet.</p>
+                <button th:onclick="'document.getElementById(\'openAddModal\').click()'" 
+                    class="mt-4 text-indigo-600 font-semibold hover:text-indigo-700">
+                    Create your first listing
+                </button>
+            </div>
+            
+            <!-- Property cards -->
+            <div th:unless="${properties.empty}" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div th:each="property : ${properties}" class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden group hover:shadow-md transition-shadow">
+                    <div class="relative h-48 bg-slate-100">
+                        <img 
+                            th:src="${property.imageUrl != null && !#strings.isEmpty(property.imageUrl)} ? ${property.imageUrl} : @{/api/properties/{id}/image(id=${property.id})}" 
+                            th:alt="${property.title}" 
+                            class="w-full h-full object-cover"
+                            onerror="this.src='https://images.unsplash.com/photo-1560518883-ce09059eeffa?ixlib=rb-4.0.3&auto=format&fit=crop&w=1073&q=80'"/>
+                        <div class="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-bold text-indigo-600 uppercase tracking-wide" th:text="${property.category}">
+                            Category
+                        </div>
+                    </div>
+                    <div class="p-5">
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="font-bold text-slate-900 line-clamp-1" th:text="${property.title}">Title</h3>
+                            <span class="text-indigo-600 font-bold" th:text="'₵' + ${property.price}">₵0</span>
+                        </div>
+                        <p class="text-sm text-slate-500 mb-4 flex items-center">
+                            <span class="truncate" th:text="${property.location}">Location</span>
+                        </p>
+                        <div class="flex justify-between items-center pt-4 border-t border-gray-50">
+                            <span th:class="'text-xs px-2 py-1 rounded-full flex items-center space-x-1 ' + (${property.isAvailable} ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700')">
+                                <i th:data-lucide="${property.isAvailable} ? 'check-circle' : 'alert-circle'" size="12"></i>
+                                <span th:text="${property.isAvailable} ? 'Available' : 'Rented'">Available</span>
+                            </span>
+                            <div class="flex items-center space-x-3">
+                                <button th:attr="data-property-id=${property.id}" onclick="editProperty(this.dataset.propertyId)"
+                                    class="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors" title="Edit Property">
+                                    <i data-lucide="edit-2" size="18"></i>
+                                </button>
+                                <button th:attr="data-property-id=${property.id}" onclick="deleteProperty(this.dataset.propertyId)"
+                                    class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Delete Property">
+                                    <i data-lucide="trash-2" size="18"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Property Modal (Add/Edit) -->
+        <div id="propertyModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+                <div class="p-6 border-b border-gray-100 flex justify-between items-center sticky top-0 bg-white z-10">
+                    <h2 id="modalTitle" class="text-xl font-bold text-slate-900">Add New Property</h2>
+                    <button id="closeModal" class="text-gray-400 hover:text-gray-600 p-2 hover:bg-gray-100 rounded-full transition-colors">
+                        <i data-lucide="x" size="24"></i>
+                    </button>
+                </div>
+                
+                <form id="propertyForm" class="p-8 space-y-6">
+                    <input type="hidden" name="id" id="propertyId">
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-2">Property Title</label>
+                        <input type="text" name="title" id="propertyTitle" 
+                            class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                            placeholder="e.g. Modern 3-Bedroom Apartment" required>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-2">Description</label>
+                        <textarea name="description" id="propertyDescription" rows="4"
+                            class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                            placeholder="Describe the property features, amenities, and surroundings..."></textarea>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-2">Property Image</label>
+                        <div class="flex flex-col space-y-4">
+                            <div id="imagePreviewContainer" class="hidden relative w-full h-40 rounded-xl overflow-hidden border border-gray-100">
+                                <img id="imagePreview" src="" alt="Preview" class="w-full h-full object-cover">
+                                <button type="button" id="removeImage" class="absolute top-2 right-2 p-1.5 bg-white/90 rounded-full text-red-500 shadow-sm">
+                                    <i data-lucide="x" size="16"></i>
+                                </button>
+                            </div>
+                            <input type="file" id="propertyImage" accept="image/*"
+                                class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors bg-white">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">Price</label>
+                            <div class="relative">
+                                <span class="absolute left-4 top-3.5 text-gray-400">₵</span>
+                                <input type="text" name="price" id="propertyPrice" 
+                                    class="w-full pl-8 pr-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                                    placeholder="0.00" required>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">Category</label>
+                            <select name="category" id="propertyCategory" 
+                                class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors bg-white">
+                                <option>Super Luxury</option>
+                                <option>Luxury</option>
+                                <option>Modest</option>
+                                <option>Simple</option>
+                                <option>Airbnb</option>
+                                <option>Hostel</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-2">Location</label>
+                        <input type="text" name="location" id="propertyLocation" 
+                            class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                            placeholder="e.g. East Legon, Accra" required>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">Latitude</label>
+                            <input type="number" step="0.0000001" name="latitude" id="propertyLatitude"
+                                class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                                placeholder="e.g. 5.603717">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">Longitude</label>
+                            <input type="number" step="0.0000001" name="longitude" id="propertyLongitude"
+                                class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                                placeholder="e.g. -0.186964">
+                        </div>
+                    </div>
+
+                    <div class="flex items-center space-x-3 p-4 bg-slate-50 rounded-xl">
+                        <input type="checkbox" id="isAvailable" name="isAvailable" checked
+                            class="w-5 h-5 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500">
+                        <label for="isAvailable" class="text-sm font-medium text-slate-700">
+                            Property is currently available for rent
+                        </label>
+                    </div>
+
+                    <div class="pt-4 flex justify-end space-x-4">
+                        <button type="submit" id="submitBtn"
+                            class="px-8 py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200 flex items-center space-x-2">
+                            <i data-lucide="save" size="20"></i>
+                            <span id="submitBtnText">Save Property</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <script th:inline="javascript">
+        lucide.createIcons();
+
+        const modal = document.getElementById('propertyModal');
+        const openModalBtn = document.getElementById('openAddModal');
+        const closeModalBtn = document.getElementById('closeModal');
+        const propertyForm = document.getElementById('propertyForm');
+        const imageInput = document.getElementById('propertyImage');
+        const imagePreview = document.getElementById('imagePreview');
+        const imagePreviewContainer = document.getElementById('imagePreviewContainer');
+        const removeImageBtn = document.getElementById('removeImage');
+
+        // Modal handling
+        openModalBtn.onclick = () => {
+            document.getElementById('modalTitle').innerText = 'Add New Property';
+            document.getElementById('submitBtnText').innerText = 'Save Property';
+            propertyForm.reset();
+            document.getElementById('propertyId').value = '';
+            imagePreviewContainer.classList.add('hidden');
+            modal.classList.remove('hidden');
+        };
+
+        closeModalBtn.onclick = () => modal.classList.add('hidden');
+
+        // Image preview
+        imageInput.onchange = (e) => {
+            if (e.target.files && e.target.files[0]) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    imagePreview.src = event.target.result;
+                    imagePreviewContainer.classList.remove('hidden');
+                };
+                reader.readAsDataURL(e.target.files[0]);
+            }
+        };
+
+        removeImageBtn.onclick = () => {
+            imageInput.value = '';
+            imagePreviewContainer.classList.add('hidden');
+        };
+
+        // Submit handling
+        propertyForm.onsubmit = async (e) => {
+            e.preventDefault();
+            const formData = new FormData();
+            const propertyId = document.getElementById('propertyId').value;
+            
+            const propertyData = {
+                title: document.getElementById('propertyTitle').value,
+                description: document.getElementById('propertyDescription').value,
+                price: parseFloat(document.getElementById('propertyPrice').value),
+                location: document.getElementById('propertyLocation').value,
+                latitude: document.getElementById('propertyLatitude').value ? parseFloat(document.getElementById('propertyLatitude').value) : null,
+                longitude: document.getElementById('propertyLongitude').value ? parseFloat(document.getElementById('propertyLongitude').value) : null,
+                category: document.getElementById('propertyCategory').value,
+                isAvailable: document.getElementById('isAvailable').checked
+            };
+
+            formData.append('property', new Blob([JSON.stringify(propertyData)], { type: 'application/json' }));
+            if (imageInput.files[0]) {
+                formData.append('image', imageInput.files[0]);
+            }
+
+            try {
+                const url = propertyId ? `/api/properties/${propertyId}` : '/api/properties';
+                const method = propertyId ? 'PUT' : 'POST';
+                
+                const response = await fetch(url, {
+                    method: method,
+                    body: formData
+                });
+
+                if (response.ok) {
+                    window.location.reload();
+                } else {
+                    alert('Failed to save property');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('An error occurred');
+            }
+        };
+
+        async function loadOwnerBookings() {
+            const container = document.getElementById('ownerBookings');
+            if (!container) return;
+            try {
+                const response = await fetch('/api/bookings/owner');
+                if (!response.ok) {
+                    const text = await response.text();
+                    container.innerText = text || 'Failed to load bookings';
+                    return;
+                }
+                const bookings = await response.json();
+                if (!Array.isArray(bookings) || bookings.length === 0) {
+                    container.innerText = 'No bookings yet.';
+                    return;
+                }
+
+                const html = bookings.map(b => {
+                    const checkIn = b.checkIn || '';
+                    const checkOut = b.checkOut || '';
+                    const status = b.status || '';
+                    const total = b.totalAmount != null ? `₵${b.totalAmount}` : '';
+                    return `
+                        <div class="flex items-center justify-between py-3 border-b border-gray-100 last:border-b-0">
+                            <div>
+                                <div class="font-bold text-slate-900">${checkIn} → ${checkOut}</div>
+                                <div class="text-sm text-slate-500">Status: ${status}${total ? ` • Total: ${total}` : ''}</div>
+                            </div>
+                            <a href="/property/${b.propertyId}" class="text-indigo-600 font-semibold hover:text-indigo-700">View Property</a>
+                        </div>
+                    `;
+                }).join('');
+
+                container.innerHTML = html;
+            } catch (e) {
+                container.innerText = 'Failed to load bookings';
+            }
+        }
+
+        loadOwnerBookings();
+
+        // Edit property
+        window.editProperty = async (id) => {
+            try {
+                const response = await fetch(`/api/properties/${id}`);
+                const property = await response.json();
+                
+                document.getElementById('modalTitle').innerText = 'Edit Property';
+                document.getElementById('submitBtnText').innerText = 'Update Property';
+                document.getElementById('propertyId').value = property.id;
+                document.getElementById('propertyTitle').value = property.title;
+                document.getElementById('propertyDescription').value = property.description;
+                document.getElementById('propertyPrice').value = property.price;
+                document.getElementById('propertyLocation').value = property.location;
+                document.getElementById('propertyLatitude').value = property.latitude ?? '';
+                document.getElementById('propertyLongitude').value = property.longitude ?? '';
+                document.getElementById('propertyCategory').value = property.category;
+                document.getElementById('isAvailable').checked = property.isAvailable;
+                
+                if (property.imageUrl) {
+                    imagePreview.src = property.imageUrl;
+                    imagePreviewContainer.classList.remove('hidden');
+                } else {
+                    imagePreviewContainer.classList.add('hidden');
+                }
+                
+                modal.classList.remove('hidden');
+            } catch (err) {
+                alert('Failed to load property details');
+            }
+        };
+
+        // Delete property
+        window.deleteProperty = async (id) => {
+            if (confirm('Are you sure you want to delete this property?')) {
+                try {
+                    const response = await fetch(`/api/properties/${id}`, { method: 'DELETE' });
+                    if (response.ok) {
+                        window.location.reload();
+                    } else {
+                        alert('Failed to delete property');
+                    }
+                } catch (err) {
+                    alert('An error occurred');
+                }
+            }
+        };
+    </script>
+</body>
+</html>

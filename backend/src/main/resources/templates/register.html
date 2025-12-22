@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout :: head('Sign Up')}"></head>
+<body class="bg-gray-50">
+    <div th:replace="~{layout :: navbar}"></div>
+
+    <div class="min-h-[80vh] flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl shadow-2xl overflow-hidden max-w-4xl w-full flex flex-col md:flex-row">
+            <!-- Left Side - Visual -->
+            <div class="md:w-1/2 bg-slate-900 p-12 text-white relative flex flex-col justify-between">
+                <div class="absolute inset-0 bg-gradient-to-br from-indigo-600 to-purple-700 opacity-90"></div>
+                <div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80')] bg-cover bg-center mix-blend-overlay opacity-20"></div>
+                
+                <div class="relative z-10">
+                    <h3 class="text-3xl font-bold mb-4">Join UrbanNest</h3>
+                    <p class="text-indigo-100">Create an account to find your dream home or manage your properties with ease.</p>
+                </div>
+                
+                <div class="relative z-10 mt-12">
+                    <div class="flex items-center space-x-2 mb-4">
+                        <div class="w-12 h-1 bg-white/20 rounded-full"></div>
+                        <div class="w-4 h-1 bg-white rounded-full"></div>
+                        <div class="w-12 h-1 bg-white/20 rounded-full"></div>
+                    </div>
+                    <p class="text-sm text-indigo-200">"The best platform for homeowners in Ghana. Simple and effective."</p>
+                    <p class="text-xs text-indigo-300 mt-2">— Michael E., Property Owner</p>
+                </div>
+            </div>
+
+            <!-- Right Side - Form -->
+            <div class="md:w-1/2 p-12 bg-white">
+                <div class="flex space-x-6 mb-8 border-b border-gray-100">
+                    <a th:href="@{/login}" class="pb-2 text-lg font-bold text-gray-400 hover:text-gray-600 transition-colors">Sign In</a>
+                    <a th:href="@{/register}" class="pb-2 text-lg font-bold text-indigo-600 border-b-2 border-indigo-600 transition-colors">Sign Up</a>
+                </div>
+
+                <h2 class="text-3xl font-bold text-slate-900 mb-2">Create Account</h2>
+                <p class="text-slate-600 mb-8">Join UrbanNest to find your dream home or manage your properties.</p>
+                
+                <form th:action="@{/api/auth/register}" method="post" class="space-y-6" id="registerForm">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-2">Full Name</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i data-lucide="user" class="h-5 w-5 text-gray-400"></i>
+                            </div>
+                            <input
+                                type="text"
+                                name="fullName"
+                                class="block w-full pl-10 pr-3 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors bg-gray-50 hover:bg-white"
+                                placeholder="John Doe"
+                                required
+                            />
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-3">I am a...</label>
+                        <div class="grid grid-cols-2 gap-4">
+                            <input type="radio" name="role" id="roleClient" value="CLIENT" class="hidden peer/client" checked>
+                            <label for="roleClient" class="p-4 rounded-xl border flex flex-col items-center justify-center space-y-2 transition-all cursor-pointer border-gray-200 hover:border-indigo-200 hover:bg-gray-50 peer-checked/client:border-indigo-600 peer-checked/client:bg-indigo-50 peer-checked/client:text-indigo-700 peer-checked/client:ring-1 peer-checked/client:ring-indigo-600">
+                                <i data-lucide="search" class="h-6 w-6"></i>
+                                <span class="font-medium text-sm">Tenant / Buyer</span>
+                            </label>
+
+                            <input type="radio" name="role" id="roleHomeowner" value="HOMEOWNER" class="hidden peer/homeowner">
+                            <label for="roleHomeowner" class="p-4 rounded-xl border flex flex-col items-center justify-center space-y-2 transition-all cursor-pointer border-gray-200 hover:border-indigo-200 hover:bg-gray-50 peer-checked/homeowner:border-indigo-600 peer-checked/homeowner:bg-indigo-50 peer-checked/homeowner:text-indigo-700 peer-checked/homeowner:ring-1 peer-checked/homeowner:ring-indigo-600">
+                                <i data-lucide="building" class="h-6 w-6"></i>
+                                <span class="font-medium text-sm">Homeowner</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-2">Email Address</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i data-lucide="mail" class="h-5 w-5 text-gray-400"></i>
+                            </div>
+                            <input
+                                type="email"
+                                name="email"
+                                class="block w-full pl-10 pr-3 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors bg-gray-50 hover:bg-white"
+                                placeholder="you@example.com"
+                                required
+                            />
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-2">Password</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i data-lucide="lock" class="h-5 w-5 text-gray-400"></i>
+                            </div>
+                            <input
+                                type="password"
+                                name="password"
+                                class="block w-full pl-10 pr-3 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors bg-gray-50 hover:bg-white"
+                                placeholder="••••••••"
+                                required
+                            />
+                        </div>
+                    </div>
+                    
+                    <button
+                        type="submit"
+                        class="w-full flex items-center justify-center space-x-2 py-3 px-4 border border-transparent rounded-xl shadow-lg shadow-indigo-200 text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all"
+                    >
+                        <span>Create Account</span>
+                        <i data-lucide="arrow-right" class="h-5 w-5"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        // Handle registration form with AJAX to handle the JSON response from API
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData.entries());
+
+            try {
+                const response = await fetch('/api/auth/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    alert('Registration successful! Please sign in.');
+                    window.location.href = '/login';
+                } else {
+                    const error = await response.json();
+                    alert(error.message || 'Registration failed');
+                }
+            } catch (err) {
+                alert('An error occurred during registration');
+            }
+        });
+    </script>
+</body>
+</html>
