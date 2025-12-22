@@ -16,7 +16,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/properties")
-@CrossOrigin(origins = "http://localhost:5173") // Allow frontend access
+@CrossOrigin(origins = "http://localhost:8080") // Allow Thymeleaf UI access
 public class PropertyController {
 
     @Autowired
