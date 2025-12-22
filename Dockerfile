@@ -15,4 +15,4 @@ COPY --from=build /workspace/backend/target/*-SNAPSHOT.jar /app/app.jar
 ENV PORT=8080
 EXPOSE 8080
 
-CMD ["sh", "-c", "java -jar /app/app.jar --server.port=${PORT}"]
+CMD ["sh", "-c", "java -Djava.net.preferIPv4Stack=true -jar /app/app.jar --server.port=${PORT}"]
