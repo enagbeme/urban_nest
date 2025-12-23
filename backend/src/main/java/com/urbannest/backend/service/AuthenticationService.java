@@ -34,11 +34,15 @@ public class AuthenticationService {
                 .build();
         var savedUser = repository.save(user);
 
+        String name = savedUser.getFullName() == null ? "" : savedUser.getFullName().trim();
+        String displayName = name.isBlank() ? "" : (name + ", ");
+
         return AuthenticationResponse.builder()
                 .role(savedUser.getRole())
                 .fullName(savedUser.getFullName())
                 .id(savedUser.getId())
-                .message("Registration successful")
+                .email(savedUser.getEmail())
+                .message("Welcome " + displayName + "your account has been created successfully. Please sign in to continue.")
                 .build();
     }
 

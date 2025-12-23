@@ -134,8 +134,11 @@
                 });
 
                 if (response.ok) {
-                    alert('Registration successful! Please sign in.');
-                    window.location.href = '/login';
+                    const result = await response.json();
+                    alert(result.message || 'Registration successful! Please sign in.');
+                    setTimeout(() => {
+                        window.location.href = '/login';
+                    }, 500);
                 } else {
                     const error = await response.json();
                     alert(error.message || 'Registration failed');
