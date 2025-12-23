@@ -122,27 +122,27 @@
                 </a>
             </div>
         </div>
+
+        <script>
+            // Initialize Lucide icons
+            lucide.createIcons();
+
+            // Mobile menu toggle
+            const btn = document.getElementById('mobile-menu-button');
+            const menu = document.getElementById('mobile-menu');
+            if (btn && menu) {
+                btn.addEventListener('click', () => {
+                    menu.classList.toggle('hidden');
+                    const icon = btn.querySelector('i');
+                    if (menu.classList.contains('hidden')) {
+                        icon.setAttribute('data-lucide', 'menu');
+                    } else {
+                        icon.setAttribute('data-lucide', 'x');
+                    }
+                    lucide.createIcons();
+                });
+            }
+        </script>
     </nav>
-
-    <script>
-        // Initialize Lucide icons
-        lucide.createIcons();
-
-        // Mobile menu toggle
-        const btn = document.getElementById('mobile-menu-button');
-        const menu = document.getElementById('mobile-menu');
-        if (btn && menu) {
-            btn.addEventListener('click', () => {
-                menu.classList.toggle('hidden');
-                const icon = btn.querySelector('i');
-                if (menu.classList.contains('hidden')) {
-                    icon.setAttribute('data-lucide', 'menu');
-                } else {
-                    icon.setAttribute('data-lucide', 'x');
-                }
-                lucide.createIcons();
-            });
-        }
-    </script>
 </body>
 </html>
